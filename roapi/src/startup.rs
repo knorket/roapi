@@ -31,10 +31,11 @@ pub struct Application {
 }
 
 impl Application {
-    pub async fn build(config: Config) -> Result<Self, Error> {
+    pub async fn build(config_val: Config) -> Result<Self, Error> {
+        let config = Arc::new(config_val);
         let default_host = std::env::var("HOST").unwrap_or_else(|_| "127.0.0.1".to_string());
 
-        let handler_ctx = RawRoapiContext::new(&config, !config.disable_read_only)
+        let handler_ctx = RawRoapiContext::new(config.as_ref(), !config.disable_read_only)
             .await
             .context(BuildContextSnafu)?;
 
@@ -51,7 +52,7 @@ impl Application {
             let postgres_server = Box::new(
                 server::postgres::PostgresServer::new(
                     ctx_ext.clone(),
-                    &config,
+                    config.clone(),
                     default_host.clone(),
                 )
                 .await,
@@ -60,7 +61,7 @@ impl Application {
             let flight_sql_server = Box::new(
                 server::flight_sql::RoapiFlightSqlServer::new(
                     ctx_ext.clone(),
-                    &config,
+                    config.as_ref(), // Assuming RoapiFlightSqlServer still takes &Config
                     default_host.clone(),
                 )
                 .await
@@ -68,7 +69,7 @@ impl Application {
             );
 
             let (http_server, http_addr) =
-                server::http::build_http_server(ctx_ext.clone(), tables, &config, default_host)
+                server::http::build_http_server(ctx_ext.clone(), tables, config.as_ref(), default_host) // Assuming build_http_server still takes &Config
                     .await
                     .context(BuildHttpServerSnafu)?;
 
@@ -93,7 +94,7 @@ impl Application {
             let postgres_server = Box::new(
                 server::postgres::PostgresServer::new(
                     ctx_ext.clone(),
-                    &config,
+                    config.clone(),
                     default_host.clone(),
                 )
                 .await,
@@ -101,7 +102,7 @@ impl Application {
             let flight_sql_server = Box::new(
                 server::flight_sql::RoapiFlightSqlServer::new(
                     ctx_ext.clone(),
-                    &config,
+                    config.as_ref(), // Assuming RoapiFlightSqlServer still takes &Config
                     default_host.clone(),
                 )
                 .await
@@ -110,7 +111,7 @@ impl Application {
             let (http_server, http_addr) = server::http::build_http_server::<RawRoapiContext>(
                 ctx_ext,
                 tables,
-                &config,
+                config.as_ref(), // Assuming build_http_server still takes &Config
                 default_host,
             )
             .await

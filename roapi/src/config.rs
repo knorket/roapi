@@ -54,6 +54,12 @@ pub struct Config {
     pub datafusion: Option<HashMap<String, String>>,
     #[serde(default)]
     pub flight_sql_config: Option<FlightSqlConfig>,
+
+    // PostgreSQL authentication settings
+    #[serde(default)]
+    pub pg_auth_enabled: Option<bool>,
+    pub pg_auth_username: Option<String>,
+    pub pg_auth_password: Option<String>,
 }
 
 fn table_arg() -> clap::Arg {

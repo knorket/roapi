@@ -282,6 +282,42 @@ houqp=> select count(*) from uk_cities;
 (1 row)
 ```
 
+### PostgreSQL Authentication
+
+ROAPI supports clear-text password authentication for its PostgreSQL wire protocol interface. This can be configured using the following options in your Roapi configuration file (e.g., `roapi.yml`):
+
+*   `pg_auth_enabled`: A boolean (`true` or `false`) to enable or disable PostgreSQL authentication.
+    *   If `true`, clients will be required to authenticate.
+    *   If `false` (or if this option is omitted entirely), authentication is disabled, and any client can connect without credentials. This is the default behavior for backward compatibility.
+*   `pg_auth_username`: A string specifying the username that clients must use to connect. This is only used if `pg_auth_enabled` is `true`.
+*   `pg_auth_password`: A string specifying the password that clients must provide. This is only used if `pg_auth_enabled` is `true`.
+
+**Example Configuration (YAML):**
+
+```yaml
+addr:
+  http: 0.0.0.0:8080
+  postgres: 0.0.0.0:5432 # Or your desired PostgreSQL port
+
+# Enable PostgreSQL authentication with a specific username and password
+pg_auth_enabled: true
+pg_auth_username: "myuser"
+pg_auth_password: "mypassword"
+
+tables:
+  - name: "example_table"
+    uri: "test_data/example.csv"
+  # ... other table configurations
+```
+
+If `pg_auth_enabled` is set to `true`, but either `pg_auth_username` or `pg_auth_password` is missing from the configuration, authentication will effectively be disabled (allowing all connections) because Roapi won't have complete credentials to check against. It's recommended to provide both username and password when enabling authentication.
+
+When connecting with a client like `psql`, you would then use the configured username and password:
+
+```bash
+PGPASSWORD="mypassword" psql -h 127.0.0.1 -U myuser -p 5432
+```
+
 
 ## Features
 
